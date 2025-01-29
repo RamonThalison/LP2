@@ -1,15 +1,14 @@
 # README.txt
 
-## Simulador
+## Simulador de Controle de Estoque com Threads
 
-Este projeto contém um programa em C que simula um controle de estoque. 
+Simula a inspeção de itens por robôs e transporte por caminhões usando threads.
 
-### Compilação
+### Requisitos:
+- Compilador GCC
+- Sistema Linux/Unix
 
-Para compilar o código, utilize o seguinte comando:
-gcc main.c -o simulador -pthread
-
-### Execução
-
-Após a compilação, execute o programa com o seguinte comando:
-./simulador
+### Compilação e Execução:
+make      # Compila o programa
+make run  # Executa o simulador
+make clean # Remove arquivos gerados
