@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h> 
 
 #define NUM_LETRAS 26
 #define ASCII_A 65
@@ -36,7 +37,7 @@ char* encrypt(const char* str) {
             exit(EXIT_FAILURE);
         }
     }
-    str_result[TAMANHO_SENHA] = '\0'; // Finaliza a string
+    str_result[TAMANHO_SENHA] = '\0';
     return str_result;
 }
 
@@ -66,7 +67,7 @@ char** ler_arquivo(const char* nome_arquivo, int* num_senhas) {
 
     int i = 0;
     while (fgets(linha, sizeof(linha), fp) != NULL) {
-        linha[strcspn(linha, "\n")] = '\0';  // Remove a quebra de linha
+        linha[strcspn(linha, "\n")] = '\0';
         linhas[i] = (char*)malloc(strlen(linha) + 1);
         if (linhas[i] == NULL) {
             perror("Erro ao alocar memória");
@@ -134,8 +135,8 @@ char** decrypt(const char* str, int* count) {
 
 void* thread_decrypt(void* args) {
     ThreadArgs* t_args = (ThreadArgs*)args;
-    char output_filename[30];
-    sprintf(output_filename, "dec_passwd_%d.txt", t_args->id);
+    char output_filename[40];
+    sprintf(output_filename, "resultados/dec_passwd_%d.txt", t_args->id);
 
     FILE *fp = fopen(output_filename, "w");
     if (fp == NULL) {
@@ -168,8 +169,8 @@ void* thread_decrypt(void* args) {
 }
 
 void process_decrypt(int id, char** senhas, int num_senhas) {
-    char output_filename[30];
-    sprintf(output_filename, "dec_passwd_%d.txt", id);
+    char output_filename[40];
+    sprintf(output_filename, "resultados/dec_passwd_%d.txt", id);
 
     FILE *fp = fopen(output_filename, "w");
     if (fp == NULL) {
@@ -208,14 +209,28 @@ int main() {
     clock_t start, end;
     double cpu_time_used;
 
+    // Cria as pastas se não existirem
+    mkdir("senhas", 0777);
+    mkdir("resultados", 0777);
+
+    // Verifica os arquivos de entrada
     for (int i = 0; i < NUM_THREADS; i++) {
-        char filename[20];
-        sprintf(filename, "passwd_%d.txt", i);
+        char filename[30];
+        sprintf(filename, "senhas/passwd_%d.txt", i);
         senhas[i] = ler_arquivo(filename, &num_senhas[i]);
+
+        if (senhas[i] == NULL) {
+            fprintf(stderr, "Erro: Arquivo '%s' não encontrado.\n", filename);
+            exit(EXIT_FAILURE);
+        }
     }
 
     printf("Escolha o método de execução:\n1. Processos\n2. Threads\n");
-    scanf("%d", &escolha);
+    int resultado_scan = scanf("%d", &escolha);
+    if (resultado_scan != 1) {
+        printf("Erro: Entrada inválida. Use apenas números (1 ou 2).\n");
+        exit(EXIT_FAILURE);
+    }
 
     start = clock();
 
@@ -226,7 +241,10 @@ int main() {
             args->senhas = senhas[i];
             args->id = i;
             args->num_senhas = num_senhas[i];
-            pthread_create(&threads[i], NULL, thread_decrypt, (void*)args);
+            if (pthread_create(&threads[i], NULL, thread_decrypt, (void*)args) != 0) {
+                perror("Erro ao criar thread");
+                exit(EXIT_FAILURE);
+            }
         }
 
         for (int i = 0; i < NUM_THREADS; i++) {
@@ -236,7 +254,10 @@ int main() {
         printf("Gerando 10 processos para processar arquivos...\n");
         for (int i = 0; i < NUM_THREADS; i++) {
             pids[i] = fork();
-            if (pids[i] == 0) {
+            if (pids[i] == -1) {
+                perror("Erro ao criar processo");
+                exit(EXIT_FAILURE);
+            } else if (pids[i] == 0) {
                 process_decrypt(i, senhas[i], num_senhas[i]);
                 exit(0);
             }
