@@ -11,6 +11,8 @@
 #define TAMANHO_SENHA 4
 #define NUM_THREADS 10
 
+// feito por @RamonThalison
+
 typedef struct {
     char** senhas;
     int id;
