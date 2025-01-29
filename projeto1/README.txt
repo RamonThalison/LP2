@@ -5,12 +5,9 @@ Este programa decodifica senhas encriptadas usando múltiplas threads ou process
 ## Instruções de Compilação
 
 Para compilar o programa, use o seguinte comando:
-gcc funcional.c -o programa
-
-## Instruções de Execução
-
-Para executar o programa, use o comando:
-./programa
+make # para compilar
+make run # para rodar
+make clean # para limpar depois do uso
 
 Você será solicitado a escolher entre threads ou processos:
 - Digite 1 para usar processos.
