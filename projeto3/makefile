@@ -1,22 +1,18 @@
-# Nome do executável
 TARGET = servidor
-
-# Compilador
 CC = gcc
-
-# Opções de compilação
-CFLAGS = -Wall
-
-# Bibliotecas
+CFLAGS = -Wall -Wextra
 LDFLAGS = -lpthread
-
-# Arquivo de entrada
 SRC = main.c
 
-# Regra para compilar o programa
+all: $(TARGET)
+
 $(TARGET): $(SRC)
 	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
 
-# Limpeza dos arquivos objetos e executáveis
+run: $(TARGET)
+	./$(TARGET)
+
 clean:
 	rm -f $(TARGET)
+
+.PHONY: all clean
